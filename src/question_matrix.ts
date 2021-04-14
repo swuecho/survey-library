@@ -263,23 +263,29 @@ export class QuestionMatrixModel
   getColumns(): Array<any> {
     return this.visibleColumns;
   }
+  public isItemChecked(row:any, column: any) {
+    let cellType = this.cellType
+    var isChecked = cellType == 'checkbox' ?  row.value && column.value &&  ( row.value == column.value || ( Array.isArray(row.value) && row.value.includes(column.value)))  :  row.value == column.value
+    return isChecked 
+  }
   public getItemClass(row: any, column: any) {
-    var isChecked = row.value == column.value;
+    let cellType = this.cellType
+    var isChecked = cellType == 'checkbox' ?  row.value && column.value &&  ( row.value == column.value || ( Array.isArray(row.value) && row.value.includes(column.value)))  :  row.value == column.value
     var isDisabled = this.isReadOnly;
     var allowHover = !isChecked && !isDisabled;
     var cellDisabledClass = this.hasCellText
       ? this.cssClasses.cellTextDisabled
-      : this.cssClasses.itemDisabled;
+      : (cellType == 'checkbox' ? this.cssClasses.itemCheckboxDisabled : this.cssClasses.itemRadioDisabled);
 
     var cellSelectedClass = this.hasCellText
       ? this.cssClasses.cellTextSelected
-      : this.cssClasses.itemChecked;
+      : (cellType == 'checkbox' ? this.cssClasses.itemCheckboxChecked : this.cssClasses.itemRadioChecked);
 
-    var itemHoverClass = !this.hasCellText ? this.cssClasses.itemHover : "";
+    var itemHoverClass = !this.hasCellText ? (cellType == 'checkbox' ? this.cssClasses.itemCheckboxHover : this.cssClasses.itemRadioHover): "";
 
     var cellClass = this.hasCellText
       ? this.cssClasses.cellText
-      : this.cssClasses.label;
+      : (cellType == 'checkbox' ? this.cssClasses.labelCheckbox : this.cssClasses.labelRadio);
 
     let itemClass =
       this.hasCellText && !!this.cssClasses.cell
@@ -424,7 +430,13 @@ export class QuestionMatrixModel
     return true;
   }
   protected getIsAnswered(): boolean {
-    return super.getIsAnswered() && this.hasValuesInAllRows();
+    let cellType = this.cellType
+    if (cellType != 'checkbox') {
+      return super.getIsAnswered() && this.hasValuesInAllRows();
+    } else {
+      return false
+    }
+
   }
   private createMatrixRow(
     item: ItemValue,
@@ -594,6 +606,10 @@ Serializer.addClass(
   "matrix",
   [
     {
+      name: "layout",
+      choices: ["horizontal", "vertical"],
+    },
+    {
       name: "columns:itemvalue[]",
       baseValue: function () {
         return surveyLocalization.getString("matrix_column");
@@ -613,6 +629,7 @@ Serializer.addClass(
     },
     "isAllRowRequired:boolean",
     "hideIfRowsEmpty:boolean",
+    "cellType:string",
   ],
   function () {
     return new QuestionMatrixModel("");
