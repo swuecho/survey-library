@@ -151,7 +151,7 @@
             >
               <label :class="question.getItemClass(column, row)">
                 <input
-                  :type="question.cellType ? 'checkbox' : 'radio'"
+                  :type="question.cellType == 'checkbox' ? 'checkbox' : 'radio'"
                   :class="question.cssClasses.itemValue + itemClass()"
                   :name="column.fullName"
                   :value="row.value"
